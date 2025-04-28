@@ -47,21 +47,21 @@
       const details = {
         '121': {
           title: 'Resolución 121/14 - Anexo I',
-          legendTitle: 'Zona de Riesgo Hídrico del AMGR por Precipitaciones',
+          legendTitle: 'Zonificacion de Riesgo Hídrico del AMGR por Precipitaciones',
           cats: ['Zona de Restricción Leve','Zona de Restricción Severa','Zona de Restricción Severa Temporaria','Zona Prohibida'],
           color: k => k.includes('leve regulada') ? '#7FDBFF' : k.includes('leve') ? '#BBDEFB' : k.includes('severa') ? '#0074D9' : k.includes('prohibida') ? '#001f3f' : '#999',
           prop: 'RIESGO'
         },
         'IV': {
           title: 'Resolución 303/17 - Anexo IV',
-          legendTitle: 'Zonificación de Riesgo',
+          legendTitle: 'Zonificación de Riesgo Hidrico del Valle de Inundación Rios Paraguay y Parana',
           cats: ['Zona Prohibida','Zona de Restricción Severa','Zona de Restricción Leve'],
           color: k => k.includes('prohibida') ? '#061351' : k.includes('severa') ? '#7b8f65' : '#c0dcb6',
           prop: 'RIESGO'
         },
         'V': {
           title: 'Resolución 303/17 - Anexo V',
-          legendTitle: 'Zonificación de riesgo hídrico del AMGR',
+          legendTitle: 'Zonificación de riesgo hídrico del AMGR por Crecidas de Rios',
           cats: ['Zona Prohibida','Zona Severa','Zona Leve','Zona Leve Regulada','Zona Factible de Urbanizar'],
           color: k => k.includes('prohibida') ? '#FF0000' : k.includes('factible') ? '#E91E63' : k.includes('leve regulada') ? '#B2DFDB' : k.includes('leve') ? '#E0F7FA' : '#006400',
           prop: 'CLASS'
