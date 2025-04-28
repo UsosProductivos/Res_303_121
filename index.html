@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Visor de Zonificación por Resoluciones</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; }
+    #selector { padding: 10px; background: #f2f2f2; }
+    select { font-size: 16px; padding: 5px; }
+    .title { text-align: center; font-size: 18px; font-weight: bold; margin: 10px 0; }
+    #map { height: calc(100% - 90px); width: 100%; position: relative; }
+    .legend { position: absolute; bottom: 15px; right: 15px; z-index: 1000;
+      background: white; padding: 10px; line-height: 18px; color: #333;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 5px; font-size: 14px;
+      max-width: 220px; }
+    .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div id="selector">
+    <label><strong>Seleccionar resolución:</strong></label>
+    <select id="resSelect">
+      <option value="121">Resolución 121/14 - Anexo I</option>
+      <option value="IV">Resolución 303/17 - Anexo IV</option>
+      <option value="V">Resolución 303/17 - Anexo V</option>
+    </select>
+  </div>
+  <div class="title" id="mapTitle"></div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Archivos GeoJSON en la misma carpeta
+    const geojsonFiles = {
+      '121': 'res_121_14.geojson',
+      'IV': 'RES_PARANA.geojson',
+      'V': 'res_303_2017.geojson'
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const map = L.map('map').setView([-27.45, -58.99], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+
+      let layer, legendCtrl;
+      const details = {
+        '121': {
+          title: 'Resolución 121/14 - Anexo I',
+          legendTitle: 'Zona de Riesgo Hídrico del AMGR por Precipitaciones',
+          cats: ['Zona de Restricción Leve','Zona de Restricción Severa','Zona de Restricción Severa Temporaria','Zona Prohibida'],
+          color: k => k.includes('leve regulada') ? '#7FDBFF' : k.includes('leve') ? '#BBDEFB' : k.includes('severa') ? '#0074D9' : k.includes('prohibida') ? '#001f3f' : '#999',
+          prop: 'RIESGO'
+        },
+        'IV': {
+          title: 'Resolución 303/17 - Anexo IV',
+          legendTitle: 'Zonificación de Riesgo',
+          cats: ['Zona Prohibida','Zona de Restricción Severa','Zona de Restricción Leve'],
+          color: k => k.includes('prohibida') ? '#061351' : k.includes('severa') ? '#7b8f65' : '#c0dcb6',
+          prop: 'RIESGO'
+        },
+        'V': {
+          title: 'Resolución 303/17 - Anexo V',
+          legendTitle: 'Zonificación de riesgo hídrico del AMGR',
+          cats: ['Zona Prohibida','Zona Severa','Zona Leve','Zona Leve Regulada','Zona Factible de Urbanizar'],
+          color: k => k.includes('prohibida') ? '#FF0000' : k.includes('factible') ? '#E91E63' : k.includes('leve regulada') ? '#B2DFDB' : k.includes('leve') ? '#E0F7FA' : '#006400',
+          prop: 'CLASS'
+        }
+      };
+
+      function style(f, opt) {
+        const v = (f.properties[details[opt].prop] || '').toLowerCase();
+        return { fillColor: details[opt].color(v), color: '#333', weight: 1, fillOpacity: 0.6 };
+      }
+      function updateLegend(opt) {
+        if (legendCtrl) map.removeControl(legendCtrl);
+        legendCtrl = L.control({ position: 'bottomright' });
+        legendCtrl.onAdd = () => {
+          const div = L.DomUtil.create('div', 'legend');
+          div.innerHTML = `<strong>${details[opt].legendTitle}</strong><hr style="margin:6px 0">`;
+          details[opt].cats.forEach(c => div.innerHTML += `<i style="background:${details[opt].color(c.toLowerCase())}"></i>${c}<br>`);
+          return div;
+        };
+        legendCtrl.addTo(map);
+      }
+
+      function load(opt) {
+        if (layer) map.removeLayer(layer);
+        document.getElementById('mapTitle').textContent = details[opt].title;
+        fetch(geojsonFiles[opt]).then(r => r.json()).then(js => {
+          layer = L.geoJSON(js, { style: f => style(f, opt), onEachFeature: (f, L) => L.bindPopup(`<strong>Zona:</strong> ${f.properties[details[opt].prop]}`) }).addTo(map);
+          map.fitBounds(layer.getBounds());
+          updateLegend(opt);
+        });
+      }
+
+      document.getElementById('resSelect').addEventListener('change', e => load(e.target.value));
+      load(document.getElementById('resSelect').value);
+    });
+  </script>
+</body>
+</html>
